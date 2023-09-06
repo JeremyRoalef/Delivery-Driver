@@ -376,6 +376,7 @@ GameObject:
   - component: {fileID: 1767030563}
   - component: {fileID: 1767030566}
   - component: {fileID: 1767030568}
+  - component: {fileID: 1767030569}
   m_Layer: 0
   m_Name: Bob's Pizza
   m_TagString: Untagged
@@ -536,6 +537,18 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 2}
   m_EdgeRadius: 0
+--- !u!114 &1767030569
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1767030562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e85a28fe5da10448ae799673cda65dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
