@@ -5,7 +5,7 @@ using UnityEngine;
 public class Delivery : MonoBehaviour
 {
 
-    bool hasPackage; //bool logic starts off as false unless otherwise assigned
+    bool boolHasPackage; //bool logic starts off as false unless otherwise assigned
 
 
     void OnCollisionEnter2D(Collision2D other) 
@@ -20,13 +20,13 @@ public class Delivery : MonoBehaviour
         if (other.tag == "Package")
         {
             Debug.Log("package picked up");
-            hasPackage = true;
+            boolHasPackage = true;
         }
 
-        if (other.tag == "Customer" && hasPackage) //bool in if statements auto assigned to true
+        if (other.tag == "Customer" && boolHasPackage) //bool in if statements auto assigned to true
         {
             Debug.Log("delivered package");
-            hasPackage = false;
+            boolHasPackage = false;
         }
     }        
 
