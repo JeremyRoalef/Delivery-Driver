@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Package
   - Customer
+  - Boundary
+  - Environment
+  - Obstacle
   layers:
   - Default
   - TransparentFX
