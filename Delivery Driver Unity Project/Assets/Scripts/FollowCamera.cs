@@ -26,6 +26,7 @@ public class FollowCamera : MonoBehaviour
 
     void LateUpdate()
     {
+        if (player == null) return;
        transform.position = player.transform.position + new Vector3 (0, 0, fltCameraZPos);
     }
 }

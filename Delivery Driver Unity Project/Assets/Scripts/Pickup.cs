@@ -13,8 +13,7 @@ public class Pickup : MonoBehaviour
         {
             if (player.BoolHasPackage) { return; }
             player.Pickup();
+            gameObject.SetActive(false);
         }
-        
-        gameObject.SetActive(false);
     }
 }

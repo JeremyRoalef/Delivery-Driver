@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,7 +10,7 @@ public class Player : MonoBehaviour
     float fltSteerSpeed = 300;
     
     [SerializeField]
-    float fltMoveSpeed = 10f;
+    float fltDefaultSpeed = 10f;
     
     [SerializeField]
     float fltSlowSpeed = 5f;
@@ -17,6 +18,8 @@ public class Player : MonoBehaviour
     [SerializeField]
     float fltBoostSpeed = 20f;
 
+    [SerializeField]
+    float fltBoostDuration = 3f;
 
     [Header("Package Attributes")]
     [SerializeField]
@@ -25,16 +28,30 @@ public class Player : MonoBehaviour
     [SerializeField]
     Color32 clrNoPackage = new Color32(0, 0, 0, 0);
 
+    [SerializeField]
+    float timeIncreaseFromDelivery = 7.5f;
 
     [Header("Misc")]
     [SerializeField]
     float fltForce = 20f;
 
-    SpriteRenderer spriteRenderer;
+    [SerializeField]
+    PlayerHealth playerHealth;
 
+    [SerializeField]
+    UIHandler uiHandler;
+
+    [SerializeField]
+    int baseScore = 500;
+
+    SpriteRenderer spriteRenderer;
+    Score playerScore;
+
+    float fltMoveSpeed;
     float fltSteerAmount;
     float fltMoveAmount;
     bool boolHasPackage;
+
     public bool BoolHasPackage
     {
         get { return boolHasPackage; }
@@ -42,11 +59,15 @@ public class Player : MonoBehaviour
 
     const string SPEED_UP_TAG_STRING = "SpeedUp";
     const string CUSTOMER_TAG_STRING = "Customer";
+    const string BOUNDARY_TAG_STRING = "Boundary";
 
     private void Awake()
     {
         //Get components
         spriteRenderer = GetComponent<SpriteRenderer>();
+        SetSpeed(fltDefaultSpeed);
+
+        playerScore = new Score(baseScore);
     }
 
     void Update()
@@ -91,14 +112,30 @@ public class Player : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D other)
     {
+        if (other.gameObject.CompareTag(BOUNDARY_TAG_STRING)) { return; }
         Debug.Log("Ouch");
         SetSpeed(fltSlowSpeed);
-        
+        HandleHealth();
+        playerScore.IncrementCrash();
+
         if (other.gameObject.TryGetComponent<Rigidbody2D>(out Rigidbody2D rb))
         {
             Debug.Log("Applying force");
             rb.AddForce(transform.up * fltForce);
         }
+    }
+
+    private void OnDestroy()
+    {
+        //Death logic
+        playerScore.AddGameDuration(uiHandler.GetGameDuration());
+        uiHandler.ShowDeathPanel(playerScore);
+        Debug.Log($"Player Score: {playerScore.GetFinalScore()}");
+    }
+
+    private void HandleHealth()
+    {
+        playerHealth.CurrentHealth--;
     }
 
     private void SetSpeed(float fltNewSpeed)
@@ -117,15 +154,35 @@ public class Player : MonoBehaviour
     {
         if (!boolHasPackage)
         {
-            spriteRenderer.color = clrHasPackage;
+            SetColor(clrHasPackage);
             Debug.Log("package picked up");
             boolHasPackage = true;
         }
     }
 
+    private void SetColor(Color32 newColor)
+    {
+        spriteRenderer.color = newColor;
+    }
+
     public void Deliver()
     {
+        uiHandler.CurrentTime += timeIncreaseFromDelivery;
+        playerHealth.CurrentHealth++;
         Debug.Log("Package delivered");
+        SetColor(clrNoPackage);
         boolHasPackage = false;
+        SetSpeed(fltBoostSpeed);
+        playerScore.IncrementDeliveries();
+        Invoke("HandleBoostSpeedLoss", fltBoostDuration);
+    }
+
+    void HandleBoostSpeedLoss()
+    {
+        //If the player crashed in between the speed up and slow down
+        //Dont change the slow speed
+        if (fltMoveSpeed == fltSlowSpeed) return;
+
+        SetSpeed(fltDefaultSpeed);
     }
 }
