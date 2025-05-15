@@ -57,9 +57,16 @@ public class Player : MonoBehaviour
         get { return boolHasPackage; }
     }
 
+    //Tags
     const string SPEED_UP_TAG_STRING = "SpeedUp";
     const string CUSTOMER_TAG_STRING = "Customer";
     const string BOUNDARY_TAG_STRING = "Boundary";
+
+    //Debug Messages
+    const string INITIAL_EVENT_MESSAGE = "Pick up a package!";
+    const string PLAYER_CRASHED_STRING = "Ouch!";
+    const string PLAYER_PICK_UP_PACKAGE = "Deliver the package";
+    const string PLAYER_DELIVERED_PACKAGE = "You delivered the package!";
 
     private void Awake()
     {
@@ -113,15 +120,18 @@ public class Player : MonoBehaviour
     void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.CompareTag(BOUNDARY_TAG_STRING)) { return; }
-        Debug.Log("Ouch");
         SetSpeed(fltSlowSpeed);
         HandleHealth();
         playerScore.IncrementCrash();
 
         if (other.gameObject.TryGetComponent<Rigidbody2D>(out Rigidbody2D rb))
         {
-            Debug.Log("Applying force");
-            rb.AddForce(transform.up * fltForce);
+            //calculate direction betwenn obj & player
+            Vector2 forceDir = (
+                other.gameObject.transform.position - transform.position
+            ).normalized;
+
+            rb.AddForce(forceDir * fltForce);
         }
     }
 
@@ -130,11 +140,11 @@ public class Player : MonoBehaviour
         //Death logic
         playerScore.AddGameDuration(uiHandler.GetGameDuration());
         uiHandler.ShowDeathPanel(playerScore);
-        Debug.Log($"Player Score: {playerScore.GetFinalScore()}");
     }
 
     private void HandleHealth()
     {
+        uiHandler.CurrentEventMessage = PLAYER_CRASHED_STRING;
         playerHealth.CurrentHealth--;
     }
 
@@ -146,7 +156,6 @@ public class Player : MonoBehaviour
     private void GiveCustomerPackage()
     {
         spriteRenderer.color = clrNoPackage;
-        Debug.Log("delivered package");
         boolHasPackage = false;
     }
 
@@ -154,8 +163,8 @@ public class Player : MonoBehaviour
     {
         if (!boolHasPackage)
         {
+            uiHandler.CurrentEventMessage = PLAYER_PICK_UP_PACKAGE;
             SetColor(clrHasPackage);
-            Debug.Log("package picked up");
             boolHasPackage = true;
         }
     }
@@ -167,22 +176,26 @@ public class Player : MonoBehaviour
 
     public void Deliver()
     {
+        StopCoroutine(HandleBoostSpeedLoss());
+        uiHandler.CurrentEventMessage = PLAYER_DELIVERED_PACKAGE;
         uiHandler.CurrentTime += timeIncreaseFromDelivery;
+        uiHandler.CurrentDeliveries++;
         playerHealth.CurrentHealth++;
-        Debug.Log("Package delivered");
         SetColor(clrNoPackage);
         boolHasPackage = false;
         SetSpeed(fltBoostSpeed);
         playerScore.IncrementDeliveries();
-        Invoke("HandleBoostSpeedLoss", fltBoostDuration);
+        StartCoroutine(HandleBoostSpeedLoss());
     }
 
-    void HandleBoostSpeedLoss()
+    IEnumerator HandleBoostSpeedLoss()
     {
+        yield return new WaitForSeconds(fltBoostDuration);
         //If the player crashed in between the speed up and slow down
         //Dont change the slow speed
-        if (fltMoveSpeed == fltSlowSpeed) return;
-
-        SetSpeed(fltDefaultSpeed);
+        if (fltMoveSpeed != fltSlowSpeed)
+        {
+            SetSpeed(fltDefaultSpeed);
+        }
     }
 }

@@ -21,11 +21,13 @@ public class UIHandler : MonoBehaviour
 
     [Header("Upper Border Overlay")]
     [SerializeField]
-    TextMeshProUGUI scoreText;
+    TextMeshProUGUI deliveryText;
 
     [SerializeField]
     TextMeshProUGUI timerText;
 
+    [SerializeField]
+    TextMeshProUGUI eventMessageText;
 
     [Header("Death Overlay")]
     [SerializeField]
@@ -45,14 +47,14 @@ public class UIHandler : MonoBehaviour
 
     Image[] deathOverlayImages;
 
-    int currentScore;
-    public int CurrentScore
+    int currentDeliveries;
+    public int CurrentDeliveries
     {
-        get { return currentScore; }
+        get { return currentDeliveries; }
         set
         {
-            currentScore = value;
-            SetScoreText(currentScore);
+            currentDeliveries = value;
+            SetDeliveryText(currentDeliveries);
         }
     }
 
@@ -69,6 +71,17 @@ public class UIHandler : MonoBehaviour
                 Die();
             }
         }
+    }
+
+    string currentEventMessage;
+    public string CurrentEventMessage
+    {
+        set 
+        { 
+            currentEventMessage = value;
+            SetEventMessageText(currentEventMessage);
+        }
+
     }
 
     bool isDead = false;
@@ -95,13 +108,31 @@ public class UIHandler : MonoBehaviour
 
     private void LateUpdate()
     {
-        UpdateTimer();
+        if (!isDead)
+        {
+            UpdateTimer();
+        }
+        else
+        {
+            SetTimeText(0);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        StopAllCoroutines();
     }
 
     private void InitializeUI()
     {
-        CurrentScore = initialPlayerScore;
+        CurrentDeliveries = initialPlayerScore;
         CurrentTime = initialPlayerTime;
+        CurrentEventMessage = "Collect a delivery!";
+    }
+
+    private void SetEventMessageText(string newMessage)
+    {
+        eventMessageText.text = newMessage;
     }
 
     private void SetTimeText(float newTime)
@@ -109,9 +140,9 @@ public class UIHandler : MonoBehaviour
         timerText.text = newTime.ToString("0.00");
     }
 
-    private void SetScoreText(float newScore)
+    private void SetDeliveryText(float newDeliveries)
     {
-        scoreText.text = newScore.ToString();
+        deliveryText.text = "Deliveries: " + newDeliveries.ToString();
     }
 
     void UpdateTimer()
